@@ -15,8 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         * {
@@ -83,6 +82,7 @@
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            page-break-after: avoid;
         }
 
         .school {
@@ -117,6 +117,8 @@
 
         .qblock {
             margin-bottom: 18px;
+            page-break-inside: auto;
+            break-inside: auto;
         }
 
         .stimulus {
@@ -124,6 +126,7 @@
             padding: 8px;
             border-radius: 6px;
             margin-bottom: 8px;
+            break-inside: avoid;
         }
 
         .subq {
@@ -272,6 +275,7 @@
         .subMark {
             font-weight: 700;
         }
+
     </style>
 </head>
 
@@ -638,37 +642,41 @@ ${subBox("ঘ", data.gha, "৪")}
         /* ================= PDF ================= */
         async function downloadPDF() {
 
-            const { jsPDF } = window.jspdf;
-
             await MathJax.typesetPromise();
 
-            const canvas = await html2canvas(document.getElementById("pdfArea"), {
-                scale: 2,
-                useCORS: true
-            });
+            const element = document.getElementById("pdfArea");
 
-            const img = canvas.toDataURL("image/png");
+            const opt = {
 
-            const pdf = new jsPDF("p", "mm", "a4");
+                margin: [0, 0, 0, 0],
 
-            const w = 210;
-            const h = (canvas.height * w) / canvas.width;
+                filename: "exam-paper.pdf",
 
-            let pos = 0;
-            let left = h;
+                image: {
+                    type: "jpeg",
+                    quality: 1
+                },
 
-            pdf.addImage(img, "PNG", 0, pos, w, h);
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0
+                },
 
-            left -= 297;
+                jsPDF: {
+                    unit: "mm",
+                    format: "a4",
+                    orientation: "portrait"
+                },
 
-            while (left > 0) {
-                pos = left - h;
-                pdf.addPage();
-                pdf.addImage(img, "PNG", 0, pos, w, h);
-                left -= 297;
-            }
+                pagebreak: {
+                    mode: ['css', 'legacy']
+                }
 
-            pdf.save("exam-paper.pdf");
+            };
+
+            await html2pdf().set(opt).from(element).save();
+
         }
 
         let deleteTarget = null;
