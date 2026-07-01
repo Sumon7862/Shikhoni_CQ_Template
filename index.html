@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>CQ Builder Pro</title>
+    <title>Exam Builder Pro (CQ + MCQ)</title>
 
     <script>
         window.MathJax = {
@@ -12,19 +12,25 @@
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
+        * {
+            font-family: "Noto Sans Bengali", Arial, sans-serif;
+        }
+
         body {
             margin: 0;
             display: flex;
             height: 100vh;
-            font-family: Arial;
             background: #eef2ff;
         }
 
+        /* LEFT PANEL */
         .editor {
             width: 40%;
             padding: 15px;
@@ -52,9 +58,10 @@
             border-radius: 10px;
         }
 
-        textarea {
+        textarea,
+        input,
+        select {
             width: 95%;
-            min-height: 60px;
             margin: 5px 0;
             padding: 8px;
             border-radius: 6px;
@@ -62,8 +69,7 @@
             resize: vertical;
         }
 
-        /* ===== A4 DESIGN ===== */
-
+        /* RIGHT PREVIEW */
         #pdfArea {
             width: 210mm;
             min-height: 297mm;
@@ -101,12 +107,6 @@
             margin-bottom: 8px;
         }
 
-        .sub {
-            margin-left: 10px;
-            margin-bottom: 5px;
-        }
-
-        /* 🔥 NEW */
         .subq {
             margin: 6px 0;
             padding: 6px;
@@ -118,7 +118,6 @@
         .sub-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
 
         .del {
@@ -126,22 +125,91 @@
             color: red;
             font-size: 12px;
         }
+
+        .option {
+            margin-left: 10px;
+        }
+
+        .mcq-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 20px;
+            margin-top: 8px;
+        }
+
+        .mcq-options div {
+            padding: 2px 0;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #f3f4f6;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .tab:hover {
+            background: #e5e7eb;
+        }
+
+        .tab.active {
+            background: #2563eb;
+            color: #fff;
+        }
     </style>
 </head>
 
 <body>
 
+    <!-- EDITOR -->
     <div class="editor">
 
-        <h2>Creative Question Builder</h2>
+        <h2>Exam Builder Pro</h2>
 
-        <button onclick="addQuestion()">+ Add Question</button>
+        <div class="tabs">
+            <button id="cqTab" class="tab active" onclick="showCQ()">
+                সৃজনশীল
+            </button>
+
+            <button id="mcqTab" class="tab" onclick="showMCQ()">
+                বহুনির্বাচনী
+            </button>
+        </div>
+
+        <hr>
+
+        <div id="cqArea">
+
+            <button onclick="addQuestion()">সৃজনশীল যোগ করুন</button>
+
+            <div id="editorArea"></div>
+
+        </div>
+
+        <div id="mcqArea" style="display:none">
+
+            <button onclick="addMCQ()">বহুনির্বাচনী যোগ করুন</button>
+
+            <div id="mcqEditor"></div>
+
+        </div>
+
         <button onclick="downloadPDF()">⬇ Download PDF</button>
-
-        <div id="editorArea"></div>
 
     </div>
 
+    <!-- PREVIEW -->
     <div style="width:60%;overflow:auto;padding:10px;">
         <div id="pdfArea"></div>
     </div>
@@ -149,29 +217,47 @@
     <script>
 
         let qCount = 0;
+        let mcqCount = 0;
 
-        /* 🔥 SUB BOX */
-        function subBox(label, value = "") {
-            return `
-    <div class="subq">
-      <div class="sub-header">
-        <b>${label})</b>
-        <span class="del" onclick="removeSub(this)">❌</span>
-      </div>
-      <textarea oninput="update()">${value}</textarea>
-    </div>
-  `;
+        /* ================= SWITCH ================= */
+        function showCQ() {
+
+            document.getElementById("cqArea").style.display = "block";
+            document.getElementById("mcqArea").style.display = "none";
+
+            document.getElementById("cqTab").classList.add("active");
+            document.getElementById("mcqTab").classList.remove("active");
         }
 
-        /* 🔥 REMOVE SUB */
+        function showMCQ() {
+
+            document.getElementById("cqArea").style.display = "none";
+            document.getElementById("mcqArea").style.display = "block";
+
+            document.getElementById("mcqTab").classList.add("active");
+            document.getElementById("cqTab").classList.remove("active");
+        }
+
+        /* ================= CQ ================= */
+
+        function subBox(label, value = "") {
+            return `
+  <div class="subq">
+    <div class="sub-header">
+      <b>${label})</b>
+      <span class="del" onclick="removeSub(this)">❌</span>
+    </div>
+    <textarea oninput="update()">${value}</textarea>
+  </div>`;
+        }
+
         function removeSub(el) {
             const box = el.closest(".subq");
-            box.querySelector("textarea").value = "";
             box.style.display = "none";
+            box.querySelector("textarea").value = "";
             update();
         }
 
-        /* ADD */
         function addQuestion(data = {}) {
 
             qCount++;
@@ -180,17 +266,17 @@
             div.className = "card";
 
             div.innerHTML = `
-    <h4>Question ${qCount}</h4>
+  <h4>সৃজনশীল:- ${bnNum(qCount)}</h4>
 
-    <textarea placeholder="Stimulus" oninput="update()">${data.stimulus || ""}</textarea>
+  <textarea placeholder="Stimulus" oninput="update()">${data.stimulus || ""}</textarea>
 
-    <input type="file" accept="image/*" onchange="handleImage(this)">
-    <input type="hidden" class="imgData" value="${data.img || ""}">
+  <input type="file" accept="image/*" onchange="handleImage(this)">
+  <input type="hidden" class="imgData" value="${data.img || ""}">
 
-    ${subBox("ক", data.k)}
-    ${subBox("খ", data.kh)}
-    ${subBox("গ", data.ga)}
-    ${subBox("ঘ", data.gha)}
+  ${subBox("ক", data.k)}
+  ${subBox("খ", data.kh)}
+  ${subBox("গ", data.ga)}
+  ${subBox("ঘ", data.gha)}
   `;
 
             document.getElementById("editorArea").appendChild(div);
@@ -198,7 +284,32 @@
             update();
         }
 
-        /* IMAGE */
+        /* ================= MCQ ================= */
+
+        function addMCQ() {
+
+            mcqCount++;
+
+            const div = document.createElement("div");
+            div.className = "card";
+
+            div.innerHTML = `
+  <h4>বহুনির্বাচনী:- ${bnNum(mcqCount)}</h4>
+
+  <textarea placeholder="Question" oninput="update()"></textarea>
+
+  <input placeholder="ক" oninput="update()">
+  <input placeholder="খ" oninput="update()">
+  <input placeholder="গ" oninput="update()">
+  <input placeholder="ঘ" oninput="update()">
+  `;
+
+            document.getElementById("mcqEditor").appendChild(div);
+
+            update();
+        }
+
+        /* ================= IMAGE ================= */
         function handleImage(input) {
             const file = input.files[0];
             const reader = new FileReader();
@@ -211,108 +322,127 @@
             if (file) reader.readAsDataURL(file);
         }
 
-        /* FORMAT */
+        /* ================= FORMAT ================= */
         function fmt(t) {
             if (!t) return "";
             return t.replace(/\n/g, "<br>");
+
         }
 
-        /* UPDATE A4 PREVIEW */
+        function bnNum(num) {
+            return String(num).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
+        }
+
+        /* ================= UPDATE ================= */
         async function update() {
 
-            const cards = document.querySelectorAll(".card");
+            let html = `<div class="header">Exam Paper</div>`;
 
-            let html = `
-    <div class="header">
-      Creative Question
-    </div>
-  `;
+            /* CQ */
+            const cqCards = document.querySelectorAll("#editorArea .card");
 
-            cards.forEach((c, i) => {
+            if (cqCards.length > 0) {
 
-                const t = c.querySelectorAll("textarea");
-                const img = c.querySelector(".imgData").value;
+                cqCards.forEach((c, i) => {
 
-                const subs = c.querySelectorAll(".subq");
+                    const t = c.querySelectorAll("textarea");
+                    const img = c.querySelector(".imgData").value;
+                    const subs = c.querySelectorAll(".subq");
 
-                function get(i) {
-                    if (!subs[i]) return "";
-                    if (subs[i].style.display === "none") return "";
-                    return subs[i].querySelector("textarea").value;
-                }
+                    function get(x) {
+                        if (!subs[x]) return "";
+                        if (subs[x].style.display === "none") return "";
+                        return subs[x].querySelector("textarea").value;
+                    }
 
-                html += `
-      <div class="qblock">
+                    html += `
+    <div class="qblock">
+      <b>সৃজনশীল:- ${bnNum(i + 1)}</b>
 
-        <b>Creative Question:- ${i + 1}</b>
-
-        <div class="stimulus">
-          ${fmt(t[0].value)}
-          ${img ? `<img src="${img}" style="max-width:100%;margin-top:5px;">` : ""}
-        </div>
-
-        ${get(0) ? `<div class="sub">ক) ${fmt(get(0))}</div>` : ""}
-        ${get(1) ? `<div class="sub">খ) ${fmt(get(1))}</div>` : ""}
-        ${get(2) ? `<div class="sub">গ) ${fmt(get(2))}</div>` : ""}
-        ${get(3) ? `<div class="sub">ঘ) ${fmt(get(3))}</div>` : ""}
-
+      <div class="stimulus">
+        ${fmt(t[0].value)}
+        ${img ? `<img src="${img}" style="max-width:100%">` : ""}
       </div>
-    `;
-            });
 
-            html += `
-    <div class="footer">
-      Generated by Shikhoni.
+      ${get(0) ? `<div class="option">(ক) ${fmt(get(0))}</div>` : ""}
+      ${get(1) ? `<div class="option">(খ) ${fmt(get(1))}</div>` : ""}
+      ${get(2) ? `<div class="option">(গ) ${fmt(get(2))}</div>` : ""}
+      ${get(3) ? `<div class="option">(ঘ) ${fmt(get(3))}</div>` : ""}
+    </div>`;
+                });
+            }
+
+            /* MCQ */
+            const mcqCards = document.querySelectorAll("#mcqEditor .card");
+            if (mcqCards.length > 0) {
+
+                mcqCards.forEach((c, i) => {
+
+                    const el = c.querySelectorAll("input");
+                    const q = c.querySelector("textarea").value;
+
+                    html += `
+  <div class="qblock">
+    <b>বহুনির্বাচনী:- ${bnNum(i + 1)}</b>
+    <div class="stimulus">
+    ${fmt(q)}
+</div>
+
+    <div class="mcq-options">
+      <div>(ক) ${fmt(el[0].value)}</div>
+      <div>(খ) ${fmt(el[1].value)}</div>
+      <div>(গ) ${fmt(el[2].value)}</div>
+      <div>(ঘ) ${fmt(el[3].value)}</div>
     </div>
-  `;
+  </div>`;
+                });
+            }
+
+            html += `<div class="footer">Generated Exam Paper</div>`;
 
             document.getElementById("pdfArea").innerHTML = html;
 
             await MathJax.typesetPromise();
         }
 
-        /* PDF */
+        /* ================= PDF ================= */
         async function downloadPDF() {
 
             const { jsPDF } = window.jspdf;
 
             await MathJax.typesetPromise();
 
-            const element = document.getElementById("pdfArea");
-
-            const canvas = await html2canvas(element, {
+            const canvas = await html2canvas(document.getElementById("pdfArea"), {
                 scale: 2,
                 useCORS: true
             });
 
-            const imgData = canvas.toDataURL("image/png");
+            const img = canvas.toDataURL("image/png");
 
             const pdf = new jsPDF("p", "mm", "a4");
 
-            const pageWidth = 210;
-            const pageHeight = 297;
+            const w = 210;
+            const h = (canvas.height * w) / canvas.width;
 
-            const imgHeight = (canvas.height * pageWidth) / canvas.width;
+            let pos = 0;
+            let left = h;
 
-            let heightLeft = imgHeight;
-            let position = 0;
+            pdf.addImage(img, "PNG", 0, pos, w, h);
 
-            pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
+            left -= 297;
 
-            heightLeft -= pageHeight;
-
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
+            while (left > 0) {
+                pos = left - h;
                 pdf.addPage();
-                pdf.addImage(imgData, "PNG", 0, position, pageWidth, imgHeight);
-                heightLeft -= pageHeight;
+                pdf.addImage(img, "PNG", 0, pos, w, h);
+                left -= 297;
             }
 
-            pdf.save("Shikhoni CQ.pdf");
+            pdf.save("exam-paper.pdf");
         }
 
         /* INIT */
-        addQuestion();
+        update();
 
     </script>
 
