@@ -20,7 +20,7 @@
 
     <style>
         * {
-            font-family: "Noto Sans Bengali", Arial, sans-serif;
+            font-family: "Noto Sans Bengali", "Arial", "sans-serif";
         }
 
         body {
@@ -32,7 +32,7 @@
 
         /* LEFT PANEL */
         .editor {
-            width: 40%;
+            width: 36%;
             padding: 15px;
             overflow: auto;
             background: white;
@@ -80,19 +80,38 @@
         }
 
         .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .school {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .subject {
             text-align: center;
             font-size: 20px;
-            font-weight: bold;
-            border-bottom: 2px solid #000;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 15px;
+            font-weight: 600;
         }
 
         .footer {
             text-align: center;
-            font-size: 12px;
+            font-size: 16px;
+            font-weight: 600;
             margin-top: 20px;
-            border-top: 1px solid #000;
+            border-top: 2px solid #000;
             padding-top: 5px;
         }
 
@@ -143,8 +162,9 @@
 
         .tabs {
             display: flex;
+            gap: 10px;
             margin-bottom: 15px;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 1px solid #ddd;
         }
 
         .tab {
@@ -167,6 +187,80 @@
             background: #2563eb;
             color: #fff;
         }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 350px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            animation: popup .25s ease;
+        }
+
+        @keyframes popup {
+            from {
+                transform: scale(.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-box h3 {
+            margin: 0;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .modal-btns {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .cancelBtn {
+            background: #e5e7eb;
+            color: #111;
+        }
+
+        .confirmBtn {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .deleteBtn {
+            background: #dc2626;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .deleteBtn:hover {
+            background: #b91c1c;
+        }
     </style>
 </head>
 
@@ -178,6 +272,7 @@
         <h2>Exam Builder Pro</h2>
 
         <div class="tabs">
+
             <button id="cqTab" class="tab active" onclick="showCQ()">
                 সৃজনশীল
             </button>
@@ -188,6 +283,25 @@
         </div>
 
         <hr>
+        <div class="card">
+
+            <h3>পরীক্ষার তথ্য</h3>
+
+            <input id="schoolName" placeholder="প্রতিষ্ঠানের নাম" oninput="update()">
+
+            <input id="subjectName" placeholder="বিষয়ের নাম" oninput="update()">
+
+            <div style="display:flex;gap:10px;">
+                <input id="className" placeholder="শ্রেণি" oninput="update()">
+                <input id="examType" placeholder="পরীক্ষার নাম" oninput="update()">
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <input id="totalMark" placeholder="পূর্ণমান" oninput="update()">
+                <input id="examTime" placeholder="সময়" oninput="update()">
+            </div>
+
+        </div>
 
         <div id="cqArea">
 
@@ -266,7 +380,15 @@
             div.className = "card";
 
             div.innerHTML = `
-  <h4>সৃজনশীল:- ${bnNum(qCount)}</h4>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+
+    <h4>সৃজনশীল:- ${bnNum(qCount)}</h4>
+
+    <button class="deleteBtn" onclick="deleteCard(this)">
+        🗑 Delete
+    </button>
+
+</div>
 
   <textarea placeholder="Stimulus" oninput="update()">${data.stimulus || ""}</textarea>
 
@@ -294,7 +416,15 @@
             div.className = "card";
 
             div.innerHTML = `
-  <h4>বহুনির্বাচনী:- ${bnNum(mcqCount)}</h4>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+
+    <h4>বহুনির্বাচনী:- ${bnNum(mcqCount)}</h4>
+
+    <button class="deleteBtn" onclick="deleteCard(this)">
+        🗑 Delete
+    </button>
+
+</div>
 
   <textarea placeholder="Question" oninput="update()"></textarea>
 
@@ -336,7 +466,48 @@
         /* ================= UPDATE ================= */
         async function update() {
 
-            let html = `<div class="header">Exam Paper</div>`;
+            const school = document.getElementById("schoolName").value;
+            const subject = document.getElementById("subjectName").value;
+            const className = document.getElementById("className").value;
+            const examType = document.getElementById("examType").value;
+            const mark = document.getElementById("totalMark").value;
+            const time = document.getElementById("examTime").value;
+
+            let html = `
+
+<div class="header">
+
+    <div class="school">
+        ${school || "প্রতিষ্ঠানের নাম"}
+    </div>
+
+    <div class="subject">
+        ${subject || "বিষয়ের নাম"}
+    </div>
+
+    <div style="text-align:center;margin-top:3px;">
+        ${examType || "পরীক্ষার নাম"}
+    </div>
+
+    <div class="header-info">
+
+        <div>
+            শ্রেণি: ${className || "........"}
+        </div>
+
+        <div>
+            পূর্ণমান: ${mark || "........"}
+        </div>
+
+        <div>
+            সময়: ${time || "........"}
+        </div>
+
+    </div>
+
+</div>
+
+`;
 
             /* CQ */
             const cqCards = document.querySelectorAll("#editorArea .card");
@@ -398,7 +569,7 @@
                 });
             }
 
-            html += `<div class="footer">Generated Exam Paper</div>`;
+            html += `<div class="footer">" আত্মবিশ্বাস রাখো, সর্বোচ্চ চেষ্টা করো—সাফল্য তোমার সঙ্গী হবেই ।"</div>`;
 
             document.getElementById("pdfArea").innerHTML = html;
 
@@ -441,10 +612,87 @@
             pdf.save("exam-paper.pdf");
         }
 
+        let deleteTarget = null;
+
+        function deleteCard(btn) {
+
+            deleteTarget = btn.closest(".card");
+
+            document
+                .getElementById("deleteModal")
+                .classList.add("show");
+        }
+
+        function closeDeleteModal() {
+
+            deleteTarget = null;
+
+            document
+                .getElementById("deleteModal")
+                .classList.remove("show");
+        }
+
+        function confirmDelete() {
+
+            if (deleteTarget) {
+
+                deleteTarget.remove();
+
+                updateCardNumber();
+
+                update();
+
+            }
+
+            closeDeleteModal();
+        }
+
+        function updateCardNumber() {
+
+            document.querySelectorAll("#editorArea .card h4")
+                .forEach((h, i) => {
+
+                    h.textContent = "সৃজনশীল:- " + bnNum(i + 1);
+
+                });
+
+            document.querySelectorAll("#mcqEditor .card h4")
+                .forEach((h, i) => {
+
+                    h.textContent = "বহুনির্বাচনী:- " + bnNum(i + 1);
+
+                });
+
+            qCount = document.querySelectorAll("#editorArea .card").length;
+
+            mcqCount = document.querySelectorAll("#mcqEditor .card").length;
+        }
+
+
         /* INIT */
         update();
 
     </script>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-box">
+
+            <h3>🗑 প্রশ্ন মুছে ফেলুন</h3>
+
+            <p>আপনি কি নিশ্চিতভাবে এই প্রশ্নটি মুছে ফেলতে চান?</p>
+
+            <div class="modal-btns">
+                <button class="cancelBtn" onclick="closeDeleteModal()">
+                    বাতিল
+                </button>
+
+                <button class="confirmBtn" onclick="confirmDelete()">
+                    মুছে ফেলুন
+                </button>
+            </div>
+
+        </div>
+    </div>
 
 </body>
 
