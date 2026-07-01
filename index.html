@@ -75,7 +75,7 @@
             min-height: 297mm;
             background: white;
             margin: auto;
-            padding: 15mm;
+            padding: 12mm;
             box-sizing: border-box;
         }
 
@@ -127,26 +127,33 @@
         }
 
         .subq {
-            margin: 6px 0;
-            padding: 6px;
+            margin: 8px 0;
+            padding: 8px;
             background: #f8fafc;
             border-radius: 6px;
             border: 1px solid #e5e7eb;
         }
 
-        .sub-header {
-            display: flex;
-            justify-content: space-between;
-        }
-
         .del {
+            color: #dc2626;
             cursor: pointer;
-            color: red;
-            font-size: 12px;
+            font-size: 18px;
+            padding: 0 5px;
         }
 
         .option {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-left: 10px;
+            margin-bottom: 6px;
+            gap: 15px;
+        }
+
+        .option span:last-child {
+            min-width: 35px;
+            text-align: right;
+            font-weight: 700;
         }
 
         .mcq-options {
@@ -261,6 +268,10 @@
         .deleteBtn:hover {
             background: #b91c1c;
         }
+
+        .subMark {
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -354,15 +365,44 @@
 
         /* ================= CQ ================= */
 
-        function subBox(label, value = "") {
+        function subBox(label, value = "", mark = "") {
+
             return `
-  <div class="subq">
-    <div class="sub-header">
-      <b>${label})</b>
-      <span class="del" onclick="removeSub(this)">❌</span>
+<div class="subq">
+
+    <div style="display:flex;gap:8px;align-items:center;">
+
+        <textarea
+            placeholder="${label}"
+            oninput="update()"
+            style="
+                flex:1;
+                margin:0;
+                min-height:32px;
+            "
+        >${value}</textarea>
+
+        <input
+            class="subMark"
+            type="number"
+            min="0"
+            value="${mark}"
+            placeholder="নম্বর"
+            oninput="update()"
+            style="
+                width:65px;
+                text-align:center;
+                margin:0;
+            ">
+
+        <span
+            class="del"
+            onclick="removeSub(this)"
+        >❌</span>
+
     </div>
-    <textarea oninput="update()">${value}</textarea>
-  </div>`;
+
+</div>`;
         }
 
         function removeSub(el) {
@@ -390,15 +430,15 @@
 
 </div>
 
-  <textarea placeholder="Stimulus" oninput="update()">${data.stimulus || ""}</textarea>
+  <textarea placeholder="উদ্দীপক লিখুন ..." oninput="update()">${data.stimulus || ""}</textarea>
 
   <input type="file" accept="image/*" onchange="handleImage(this)">
   <input type="hidden" class="imgData" value="${data.img || ""}">
 
-  ${subBox("ক", data.k)}
-  ${subBox("খ", data.kh)}
-  ${subBox("গ", data.ga)}
-  ${subBox("ঘ", data.gha)}
+  ${subBox("ক", data.k, "১")}
+${subBox("খ", data.kh, "২")}
+${subBox("গ", data.ga, "৩")}
+${subBox("ঘ", data.gha, "৪")}
   `;
 
             document.getElementById("editorArea").appendChild(div);
@@ -426,7 +466,7 @@
 
 </div>
 
-  <textarea placeholder="Question" oninput="update()"></textarea>
+  <textarea placeholder="প্রশ্ন লিখুন" oninput="update()"></textarea>
 
   <input placeholder="ক" oninput="update()">
   <input placeholder="খ" oninput="update()">
@@ -525,6 +565,13 @@
                         if (subs[x].style.display === "none") return "";
                         return subs[x].querySelector("textarea").value;
                     }
+                    function getMark(x) {
+
+                        if (!subs[x]) return "";
+
+                        return subs[x].querySelector(".subMark").value;
+
+                    }
 
                     html += `
     <div class="qblock">
@@ -535,10 +582,22 @@
         ${img ? `<img src="${img}" style="max-width:100%">` : ""}
       </div>
 
-      ${get(0) ? `<div class="option">(ক) ${fmt(get(0))}</div>` : ""}
-      ${get(1) ? `<div class="option">(খ) ${fmt(get(1))}</div>` : ""}
-      ${get(2) ? `<div class="option">(গ) ${fmt(get(2))}</div>` : ""}
-      ${get(3) ? `<div class="option">(ঘ) ${fmt(get(3))}</div>` : ""}
+      ${get(0) ? `<div class="option">
+    <span>(ক) ${fmt(get(0))}</span>
+    <span>${bnNum(getMark(0))}</span>
+</div>` : ""}
+      ${get(1) ? `<div class="option">
+    <span>(খ) ${fmt(get(1))}</span>
+    <span>${bnNum(getMark(1))}</span>
+</div>` : ""}
+      ${get(2) ? `<div class="option">
+    <span>(গ) ${fmt(get(2))}</span>
+    <span>${bnNum(getMark(2))}</span>
+</div>` : ""}
+      ${get(3) ? `<div class="option">
+    <span>(ঘ) ${fmt(get(3))}</span>
+    <span>${bnNum(getMark(3))}</span>
+</div>` : ""}
     </div>`;
                 });
             }
@@ -683,11 +742,11 @@
 
             <div class="modal-btns">
                 <button class="cancelBtn" onclick="closeDeleteModal()">
-                    বাতিল
+                    cancel
                 </button>
 
                 <button class="confirmBtn" onclick="confirmDelete()">
-                    মুছে ফেলুন
+                    Delete
                 </button>
             </div>
 
