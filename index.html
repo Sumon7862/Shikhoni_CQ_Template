@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 
 <head>
     <meta charset="UTF-8">
-    <title>Exam Builder Pro (CQ + MCQ)</title>
+    <title>Shikhoni Exam Builder</title>
 
     <script>
         window.MathJax = {
@@ -15,126 +15,231 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         * {
-            font-family: "Noto Sans Bengali", "Arial", "sans-serif";
+            font-family: "Noto Sans Bengali", "Arial", sans-serif;
         }
 
         body {
             margin: 0;
             display: flex;
             height: 100vh;
-            background: #eef2ff;
+            background: #f4f7fb;
         }
 
-        /* LEFT PANEL */
         .editor {
             width: 36%;
-            padding: 15px;
+            padding: 16px;
             overflow: auto;
-            background: white;
-            border-right: 2px solid #ddd;
+            background: #fafbfc;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .editor h2 {
+            color: #64748b;
+            margin-bottom: 2px;
+            font-size: 22px;
+        }
+
+        .editor-subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 14px;
         }
 
         button {
-            padding: 10px;
+            padding: 9px 14px;
             margin: 5px 0;
             cursor: pointer;
-            background: #2563eb;
-            color: white;
+            background: #7eb8e8;
+            color: #fff;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.15s;
         }
 
-        /* CARD */
+        button:hover {
+            background: #6aaee0;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: #a8d4f5;
+            color: #334155;
+        }
+
+        .add-btn:hover {
+            background: #93c9f0;
+        }
+
+        .download-btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
         .card {
-            background: #f9fafb;
-            border: 1px solid #ddd;
+            background: #fff;
+            border: 1px solid #e8edf2;
             padding: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             border-radius: 10px;
+        }
+
+        .card h3, .card h4 {
+            color: #64748b;
+            font-size: 15px;
         }
 
         textarea,
         input,
         select {
-            width: 95%;
+            width: 100%;
             margin: 5px 0;
             padding: 8px;
             border-radius: 6px;
-            border: 1px solid #ccc;
+            border: 1px solid #e2e8f0;
             resize: vertical;
-        }
-
-        /* RIGHT PREVIEW */
-        #pdfArea {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            margin: auto;
-            padding: 12mm;
+            background: #fafbfc;
             box-sizing: border-box;
         }
 
-        .header {
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            page-break-after: avoid;
+        textarea:focus,
+        input:focus {
+            outline: none;
+            border-color: #a8d4f5;
+            background: #fff;
         }
 
-        .school {
+        .preview-wrap {
+            width: 64%;
+            overflow: auto;
+            padding: 20px;
+            background: #eef2f6;
+        }
+
+        #pdfArea {
+            width: 794px;
+            max-width: 794px;
+            min-height: 1123px;
+            background: #fff;
+            margin: auto;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            color: #000;
+        }
+
+        .pdf-content {
+            padding: 56px;
+            box-sizing: border-box;
+            width: 100%;
+            color: #000;
+            background: #fff;
+        }
+
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        .brand-name {
             text-align: center;
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1565c0;
+            letter-spacing: 0.5px;
         }
 
         .subject {
             text-align: center;
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 6px;
+            color: #000;
+        }
+
+        .exam-type-line {
+            text-align: center;
             margin-top: 4px;
+            font-size: 15px;
+            color: #333;
         }
 
         .header-info {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             margin-top: 12px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
+            color: #000;
+            gap: 8px;
+        }
+
+        .header-info > div:nth-child(1) { text-align: left; }
+        .header-info > div:nth-child(2) { text-align: center; }
+        .header-info > div:nth-child(3) { text-align: right; }
+
+        .section-head {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1565c0;
+            margin: 18px 0 10px;
+            padding: 6px 12px;
+            background: #f0f4f8;
+            border-radius: 4px;
+            border-left: 4px solid #1565c0;
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        .section-head:first-of-type {
+            margin-top: 0;
         }
 
         .footer {
             text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px;
-            border-top: 2px solid #000;
-            padding-top: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 24px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            color: #555;
         }
 
         .qblock {
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             page-break-inside: auto;
             break-inside: auto;
+            color: #000;
+        }
+
+        .qblock b {
+            color: #1565c0;
         }
 
         .stimulus {
-            background: #f3f4f6;
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 8px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 6px;
             break-inside: avoid;
+            border: 1px solid #ddd;
+            color: #000;
         }
 
         .subq {
             margin: 8px 0;
             padding: 8px;
-            background: #f8fafc;
+            background: #fafbfc;
             border-radius: 6px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e8edf2;
         }
 
         .del {
@@ -151,12 +256,14 @@
             margin-left: 10px;
             margin-bottom: 6px;
             gap: 15px;
+            color: #000;
         }
 
         .option span:last-child {
             min-width: 35px;
             text-align: right;
             font-weight: 700;
+            color: #c62828;
         }
 
         .mcq-options {
@@ -164,6 +271,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 6px 20px;
             margin-top: 8px;
+            color: #000;
         }
 
         .mcq-options div {
@@ -172,30 +280,42 @@
 
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ddd;
+            gap: 6px;
+            margin-bottom: 14px;
         }
 
         .tab {
             flex: 1;
-            padding: 12px;
-            border: none;
-            background: #f3f4f6;
-            color: #333;
-            font-size: 16px;
+            padding: 10px 8px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #94a3b8;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: .25s;
+            transition: .2s;
+            border-radius: 8px;
         }
 
         .tab:hover {
-            background: #e5e7eb;
+            background: #f0f7fc;
+            color: #64748b;
         }
 
         .tab.active {
-            background: #2563eb;
-            color: #fff;
+            background: #a8d4f5;
+            color: #334155;
+            border-color: #a8d4f5;
+        }
+
+        .editor-panel {
+            margin-top: 4px;
+        }
+
+        .panel-hint {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0 0 8px;
         }
 
         .modal {
@@ -222,20 +342,12 @@
         }
 
         @keyframes popup {
-            from {
-                transform: scale(.85);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
+            from { transform: scale(.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .modal-box h3 {
-            margin: 0;
-            margin-bottom: 10px;
+            margin: 0 0 10px;
         }
 
         .modal-box p {
@@ -260,152 +372,142 @@
         }
 
         .deleteBtn {
-            background: #dc2626;
-            color: #fff;
-            padding: 6px 10px;
+            background: #fca5a5;
+            color: #7f1d1d;
+            padding: 5px 10px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 12px;
         }
 
         .deleteBtn:hover {
-            background: #b91c1c;
+            background: #f87171;
         }
 
         .subMark {
             font-weight: 700;
         }
 
+        .written-qblock {
+            margin-bottom: 14px;
+            page-break-inside: auto;
+            break-inside: auto;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            color: #000;
+        }
+
+        .written-num {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1565c0;
+            min-width: 28px;
+            line-height: 1.5;
+        }
+
+        .written-text {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #000;
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+        }
+
+        .row-2 {
+            display: flex;
+            gap: 8px;
+        }
+
+        .row-2 input {
+            flex: 1;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- EDITOR -->
     <div class="editor">
 
-        <h2>Exam Builder Pro</h2>
+        <h2>Shikhoni</h2>
+        <p class="editor-subtitle">প্রশ্নপত্র বিল্ডার — সৃজনশীল, বহুনির্বাচনী ও লিখিত একসাথে</p>
 
         <div class="tabs">
-
-            <button id="cqTab" class="tab active" onclick="showCQ()">
-                সৃজনশীল
-            </button>
-
-            <button id="mcqTab" class="tab" onclick="showMCQ()">
-                বহুনির্বাচনী
-            </button>
+            <button id="cqTab" class="tab active" onclick="showCQ()">সৃজনশীল</button>
+            <button id="mcqTab" class="tab" onclick="showMCQ()">বহুনির্বাচনী</button>
+            <button id="writtenTab" class="tab" onclick="showwritten()">লিখিত</button>
         </div>
 
-        <hr>
-        <div class="card">
+        <hr style="border:none;border-top:1px solid #e8edf2;margin:12px 0;">
 
+        <div class="card info-card">
             <h3>পরীক্ষার তথ্য</h3>
-
-            <input id="schoolName" placeholder="প্রতিষ্ঠানের নাম" oninput="update()">
-
             <input id="subjectName" placeholder="বিষয়ের নাম" oninput="update()">
-
-            <div style="display:flex;gap:10px;">
-                <input id="className" placeholder="শ্রেণি" oninput="update()">
-                <input id="examType" placeholder="পরীক্ষার নাম" oninput="update()">
-            </div>
-
-            <div style="display:flex;gap:10px;">
+            <input id="examType" placeholder="পরীক্ষার নাম" oninput="update()">
+            <div class="row-2">
                 <input id="totalMark" placeholder="পূর্ণমান" oninput="update()">
-                <input id="examTime" placeholder="সময়" oninput="update()">
+                <input id="examTime" placeholder="সময় (মিনিট)" oninput="update()">
             </div>
-
         </div>
 
-        <div id="cqArea">
-
-            <button onclick="addQuestion()">সৃজনশীল যোগ করুন</button>
-
+        <div id="cqArea" class="editor-panel">
+            <p class="panel-hint">সৃজনশীল প্রশ্ন এডিট করুন — প্রিভিউতে সব ধরনের প্রশ্ন একসাথে দেখাবে</p>
+            <button class="add-btn" onclick="addQuestion()">+ সৃজনশীল যোগ করুন</button>
             <div id="editorArea"></div>
-
         </div>
 
-        <div id="mcqArea" style="display:none">
-
-            <button onclick="addMCQ()">বহুনির্বাচনী যোগ করুন</button>
-
+        <div id="mcqArea" class="editor-panel" style="display:none">
+            <p class="panel-hint">বহুনির্বাচনী প্রশ্ন সৃজনশীলের নিচে যোগ হবে</p>
+            <button class="add-btn" onclick="addMCQ()">+ বহুনির্বাচনী যোগ করুন</button>
             <div id="mcqEditor"></div>
-
         </div>
 
-        <button onclick="downloadPDF()">⬇ Download PDF</button>
+        <div id="writtenArea" class="editor-panel" style="display:none">
+            <p class="panel-hint">লিখিত প্রশ্ন সবার নিচে যোগ হবে</p>
+            <button class="add-btn" onclick="addwritten()">+ লিখিত প্রশ্ন যোগ করুন</button>
+            <div id="writtenEditor"></div>
+        </div>
 
+        <button class="download-btn" onclick="downloadPDF()">⬇ PDF ডাউনলোড</button>
     </div>
 
-    <!-- PREVIEW -->
-    <div style="width:60%;overflow:auto;padding:10px;">
+    <div class="preview-wrap">
         <div id="pdfArea"></div>
     </div>
 
     <script>
-
         let qCount = 0;
         let mcqCount = 0;
+        let writtenCount = 0;
 
-        /* ================= SWITCH ================= */
-        function showCQ() {
+        const TAB_IDS = ["cqTab", "mcqTab", "writtenTab"];
+        const AREA_IDS = ["cqArea", "mcqArea", "writtenArea"];
 
-            document.getElementById("cqArea").style.display = "block";
-            document.getElementById("mcqArea").style.display = "none";
-
-            document.getElementById("cqTab").classList.add("active");
-            document.getElementById("mcqTab").classList.remove("active");
+        function setActiveTab(tab) {
+            TAB_IDS.forEach(id => {
+                document.getElementById(id).classList.toggle("active", id === tab + "Tab");
+            });
+            AREA_IDS.forEach(id => {
+                document.getElementById(id).style.display = id === tab + "Area" ? "block" : "none";
+            });
         }
 
-        function showMCQ() {
-
-            document.getElementById("cqArea").style.display = "none";
-            document.getElementById("mcqArea").style.display = "block";
-
-            document.getElementById("mcqTab").classList.add("active");
-            document.getElementById("cqTab").classList.remove("active");
-        }
-
-        /* ================= CQ ================= */
+        function showCQ() { setActiveTab("cq"); }
+        function showMCQ() { setActiveTab("mcq"); }
+        function showwritten() { setActiveTab("written"); }
 
         function subBox(label, value = "", mark = "") {
-
             return `
 <div class="subq">
-
     <div style="display:flex;gap:8px;align-items:center;">
-
-        <textarea
-            placeholder="${label}"
-            oninput="update()"
-            style="
-                flex:1;
-                margin:0;
-                min-height:32px;
-            "
-        >${value}</textarea>
-
-        <input
-            class="subMark"
-            type="number"
-            min="0"
-            value="${mark}"
-            placeholder="নম্বর"
-            oninput="update()"
-            style="
-                width:65px;
-                text-align:center;
-                margin:0;
-            ">
-
-        <span
-            class="del"
-            onclick="removeSub(this)"
-        >❌</span>
-
+        <textarea placeholder="${label}" oninput="update()" style="flex:1;margin:0;min-height:32px;">${value}</textarea>
+        <input class="subMark" type="number" min="0" value="${mark}" placeholder="নম্বর" oninput="update()" style="width:65px;text-align:center;margin:0;">
+        <span class="del" onclick="removeSub(this)">❌</span>
     </div>
-
 </div>`;
         }
 
@@ -417,350 +519,311 @@
         }
 
         function addQuestion(data = {}) {
-
             qCount++;
-
             const div = document.createElement("div");
             div.className = "card";
-
             div.innerHTML = `
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-
+<div style="display:flex;justify-content:space-between;align-items:center;">
     <h4>সৃজনশীল:- ${bnNum(qCount)}</h4>
-
-    <button class="deleteBtn" onclick="deleteCard(this)">
-        🗑 Delete
-    </button>
-
+    <button class="deleteBtn" onclick="deleteCard(this)">🗑 Delete</button>
 </div>
-
-  <textarea placeholder="উদ্দীপক লিখুন ..." oninput="update()">${data.stimulus || ""}</textarea>
-
-  <input type="file" accept="image/*" onchange="handleImage(this)">
-  <input type="hidden" class="imgData" value="${data.img || ""}">
-
-  ${subBox("ক", data.k, "১")}
+<textarea placeholder="উদ্দীপক লিখুন ..." oninput="update()">${data.stimulus || ""}</textarea>
+<input type="file" accept="image/*" onchange="handleImage(this)">
+<input type="hidden" class="imgData" value="${data.img || ""}">
+${subBox("ক", data.k, "১")}
 ${subBox("খ", data.kh, "২")}
 ${subBox("গ", data.ga, "৩")}
-${subBox("ঘ", data.gha, "৪")}
-  `;
-
+${subBox("ঘ", data.gha, "৪")}`;
             document.getElementById("editorArea").appendChild(div);
-
             update();
         }
-
-        /* ================= MCQ ================= */
 
         function addMCQ() {
-
             mcqCount++;
-
             const div = document.createElement("div");
             div.className = "card";
-
             div.innerHTML = `
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-
+<div style="display:flex;justify-content:space-between;align-items:center;">
     <h4>বহুনির্বাচনী:- ${bnNum(mcqCount)}</h4>
-
-    <button class="deleteBtn" onclick="deleteCard(this)">
-        🗑 Delete
-    </button>
-
+    <button class="deleteBtn" onclick="deleteCard(this)">🗑 Delete</button>
 </div>
-
-  <textarea placeholder="প্রশ্ন লিখুন" oninput="update()"></textarea>
-
-  <input placeholder="ক" oninput="update()">
-  <input placeholder="খ" oninput="update()">
-  <input placeholder="গ" oninput="update()">
-  <input placeholder="ঘ" oninput="update()">
-  `;
-
+<textarea placeholder="প্রশ্ন লিখুন" oninput="update()"></textarea>
+<input placeholder="ক" oninput="update()">
+<input placeholder="খ" oninput="update()">
+<input placeholder="গ" oninput="update()">
+<input placeholder="ঘ" oninput="update()">`;
             document.getElementById("mcqEditor").appendChild(div);
-
             update();
         }
 
-        /* ================= IMAGE ================= */
+        function addwritten(data = {}) {
+            writtenCount++;
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;">
+    <h4>লিখিত:- ${bnNum(writtenCount)}</h4>
+    <button class="deleteBtn" onclick="deleteCard(this)">🗑 Delete</button>
+</div>
+<textarea placeholder="প্রশ্ন লিখুন ..." oninput="update()">${data.question || ""}</textarea>`;
+            document.getElementById("writtenEditor").appendChild(div);
+            update();
+        }
+
         function handleImage(input) {
             const file = input.files[0];
             const reader = new FileReader();
-
             reader.onload = e => {
                 input.parentElement.querySelector(".imgData").value = e.target.result;
                 update();
             };
-
             if (file) reader.readAsDataURL(file);
         }
 
-        /* ================= FORMAT ================= */
         function fmt(t) {
             if (!t) return "";
             return t.replace(/\n/g, "<br>");
-
         }
 
         function bnNum(num) {
             return String(num).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
         }
 
-        /* ================= UPDATE ================= */
         async function update() {
-
-            const school = document.getElementById("schoolName").value;
             const subject = document.getElementById("subjectName").value;
-            const className = document.getElementById("className").value;
             const examType = document.getElementById("examType").value;
             const mark = document.getElementById("totalMark").value;
             const time = document.getElementById("examTime").value;
 
             let html = `
-
 <div class="header">
-
-    <div class="school">
-        ${school || "প্রতিষ্ঠানের নাম"}
-    </div>
-
-    <div class="subject">
-        ${subject || "বিষয়ের নাম"}
-    </div>
-
-    <div style="text-align:center;margin-top:3px;">
-        ${examType || "পরীক্ষার নাম"}
-    </div>
-
+    <div class="brand-name">Shikhoni</div>
+    <div class="subject">${subject || "বিষয়ের নাম"}</div>
+    <div class="exam-type-line">${examType || "লিখিত পরীক্ষা"}</div>
     <div class="header-info">
-
-        <div>
-            শ্রেণি: ${className || "........"}
-        </div>
-
-        <div>
-            পূর্ণমান: ${mark || "........"}
-        </div>
-
-        <div>
-            সময়: ${time || "........"}
-        </div>
-
+        <div>প্রশ্নপত্র</div>
+        <div>পূর্ণমান: ${mark || "........"}</div>
+        <div>সময়: ${time ? time + " মিনিট" : "........"}</div>
     </div>
+</div>`;
 
-</div>
-
-`;
-
-            /* CQ */
             const cqCards = document.querySelectorAll("#editorArea .card");
-
             if (cqCards.length > 0) {
-
+                html += `<div class="section-head">সৃজনশীল</div>`;
                 cqCards.forEach((c, i) => {
-
                     const t = c.querySelectorAll("textarea");
                     const img = c.querySelector(".imgData").value;
                     const subs = c.querySelectorAll(".subq");
 
                     function get(x) {
-                        if (!subs[x]) return "";
-                        if (subs[x].style.display === "none") return "";
+                        if (!subs[x] || subs[x].style.display === "none") return "";
                         return subs[x].querySelector("textarea").value;
                     }
                     function getMark(x) {
-
                         if (!subs[x]) return "";
-
                         return subs[x].querySelector(".subMark").value;
-
                     }
 
                     html += `
-    <div class="qblock">
-      <b>সৃজনশীল:- ${bnNum(i + 1)}</b>
-
-      <div class="stimulus">
+<div class="qblock">
+    <b>সৃজনশীল:- ${bnNum(i + 1)}</b>
+    <div class="stimulus">
         ${fmt(t[0].value)}
         ${img ? `<img src="${img}" style="max-width:100%">` : ""}
-      </div>
-
-      ${get(0) ? `<div class="option">
-    <span>(ক) ${fmt(get(0))}</span>
-    <span>${bnNum(getMark(0))}</span>
-</div>` : ""}
-      ${get(1) ? `<div class="option">
-    <span>(খ) ${fmt(get(1))}</span>
-    <span>${bnNum(getMark(1))}</span>
-</div>` : ""}
-      ${get(2) ? `<div class="option">
-    <span>(গ) ${fmt(get(2))}</span>
-    <span>${bnNum(getMark(2))}</span>
-</div>` : ""}
-      ${get(3) ? `<div class="option">
-    <span>(ঘ) ${fmt(get(3))}</span>
-    <span>${bnNum(getMark(3))}</span>
-</div>` : ""}
-    </div>`;
+    </div>
+    ${get(0) ? `<div class="option"><span>(ক) ${fmt(get(0))}</span><span>${bnNum(getMark(0))}</span></div>` : ""}
+    ${get(1) ? `<div class="option"><span>(খ) ${fmt(get(1))}</span><span>${bnNum(getMark(1))}</span></div>` : ""}
+    ${get(2) ? `<div class="option"><span>(গ) ${fmt(get(2))}</span><span>${bnNum(getMark(2))}</span></div>` : ""}
+    ${get(3) ? `<div class="option"><span>(ঘ) ${fmt(get(3))}</span><span>${bnNum(getMark(3))}</span></div>` : ""}
+</div>`;
                 });
             }
 
-            /* MCQ */
             const mcqCards = document.querySelectorAll("#mcqEditor .card");
             if (mcqCards.length > 0) {
-
+                html += `<div class="section-head">বহুনির্বাচনী</div>`;
                 mcqCards.forEach((c, i) => {
-
                     const el = c.querySelectorAll("input");
                     const q = c.querySelector("textarea").value;
-
                     html += `
-  <div class="qblock">
+<div class="qblock">
     <b>বহুনির্বাচনী:- ${bnNum(i + 1)}</b>
-    <div class="stimulus">
-    ${fmt(q)}
-</div>
-
+    <div class="stimulus">${fmt(q)}</div>
     <div class="mcq-options">
-      <div>(ক) ${fmt(el[0].value)}</div>
-      <div>(খ) ${fmt(el[1].value)}</div>
-      <div>(গ) ${fmt(el[2].value)}</div>
-      <div>(ঘ) ${fmt(el[3].value)}</div>
+        <div>(ক) ${fmt(el[0].value)}</div>
+        <div>(খ) ${fmt(el[1].value)}</div>
+        <div>(গ) ${fmt(el[2].value)}</div>
+        <div>(ঘ) ${fmt(el[3].value)}</div>
     </div>
-  </div>`;
+</div>`;
+                });
+            }
+
+            const writtenCards = document.querySelectorAll("#writtenEditor .card");
+            if (writtenCards.length > 0) {
+                html += `<div class="section-head">লিখিত</div>`;
+                writtenCards.forEach((c, i) => {
+                    const q = c.querySelector("textarea").value;
+                    html += `
+<div class="written-qblock">
+    <span class="written-num">${bnNum(i + 1)}.</span>
+    <div class="written-text">${fmt(q) || "........"}</div>
+</div>`;
                 });
             }
 
             html += `<div class="footer">" আত্মবিশ্বাস রাখো, সর্বোচ্চ চেষ্টা করো—সাফল্য তোমার সঙ্গী হবেই ।"</div>`;
 
-            document.getElementById("pdfArea").innerHTML = html;
-
+            document.getElementById("pdfArea").innerHTML = `<div class="pdf-content">${html}</div>`;
             await MathJax.typesetPromise();
         }
 
-        /* ================= PDF ================= */
-        async function downloadPDF() {
+        const A4_WIDTH_PX = 794;
+        const PAGE_W_MM = 210;
+        const PAGE_H_MM = 297;
+        const PDF_MARGIN_MM = 12;
+        const PRINT_W_MM = PAGE_W_MM - PDF_MARGIN_MM * 2;
+        const PRINT_H_MM = PAGE_H_MM - PDF_MARGIN_MM * 2;
 
+        async function downloadPDF() {
             await MathJax.typesetPromise();
 
-            const element = document.getElementById("pdfArea");
+            const previewWrap = document.querySelector(".preview-wrap");
+            previewWrap.scrollTop = 0;
+            previewWrap.scrollLeft = 0;
+            window.scrollTo(0, 0);
 
-            const opt = {
+            const source = document.getElementById("pdfArea");
 
-                margin: [0, 0, 0, 0],
+            const container = document.createElement("div");
+            container.style.cssText = `
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: ${A4_WIDTH_PX}px;
+                overflow: hidden;
+                opacity: 0;
+                pointer-events: none;
+                z-index: -1;
+                background: #fff;
+            `;
 
-                filename: "exam-paper.pdf",
+            const clone = source.cloneNode(true);
+            clone.style.cssText = `
+                width: ${A4_WIDTH_PX}px;
+                max-width: ${A4_WIDTH_PX}px;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+                background: #fff;
+                box-sizing: border-box;
+            `;
 
-                image: {
-                    type: "jpeg",
-                    quality: 1
-                },
+            container.appendChild(clone);
+            document.body.appendChild(container);
 
-                html2canvas: {
+            try {
+                const canvas = await html2canvas(clone, {
                     scale: 2,
                     useCORS: true,
-                    scrollY: 0
-                },
+                    scrollX: 0,
+                    scrollY: 0,
+                    backgroundColor: "#ffffff",
+                    logging: false,
+                    width: A4_WIDTH_PX,
+                    height: clone.scrollHeight
+                });
 
-                jsPDF: {
-                    unit: "mm",
-                    format: "a4",
-                    orientation: "portrait"
-                },
+                const jsPDFClass = window.jspdf?.jsPDF;
+                if (!jsPDFClass) throw new Error("jsPDF library not loaded");
 
-                pagebreak: {
-                    mode: ['css', 'legacy']
+                const pdf = new jsPDFClass({ unit: "mm", format: "a4", orientation: "portrait" });
+                const imgData = canvas.toDataURL("image/jpeg", 0.98);
+                const imgWidthMM = PRINT_W_MM;
+                const imgHeightMM = (canvas.height * imgWidthMM) / canvas.width;
+
+                let heightLeft = imgHeightMM;
+                let positionY = PDF_MARGIN_MM;
+
+                pdf.addImage(imgData, "JPEG", PDF_MARGIN_MM, positionY, imgWidthMM, imgHeightMM);
+                heightLeft -= PRINT_H_MM;
+
+                while (heightLeft > 0) {
+                    positionY = PDF_MARGIN_MM - (imgHeightMM - heightLeft);
+                    pdf.addPage();
+                    pdf.addImage(imgData, "JPEG", PDF_MARGIN_MM, positionY, imgWidthMM, imgHeightMM);
+                    heightLeft -= PRINT_H_MM;
                 }
 
-            };
+                const totalPages = pdf.internal.getNumberOfPages();
+                const inset = 8;
 
-            await html2pdf().set(opt).from(element).save();
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.setPage(i);
+                    pdf.setDrawColor(100, 100, 100);
+                    pdf.setLineWidth(0.3);
+                    pdf.rect(inset, inset, PAGE_W_MM - inset * 2, PAGE_H_MM - inset * 2);
+                }
 
+                pdf.save("shikhoni-exam.pdf");
+            } catch (err) {
+                console.error("PDF error:", err);
+                alert("PDF তৈরি করা যায়নি। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।");
+            } finally {
+                container.remove();
+            }
         }
 
         let deleteTarget = null;
 
         function deleteCard(btn) {
-
             deleteTarget = btn.closest(".card");
-
-            document
-                .getElementById("deleteModal")
-                .classList.add("show");
+            document.getElementById("deleteModal").classList.add("show");
         }
 
         function closeDeleteModal() {
-
             deleteTarget = null;
-
-            document
-                .getElementById("deleteModal")
-                .classList.remove("show");
+            document.getElementById("deleteModal").classList.remove("show");
         }
 
         function confirmDelete() {
-
             if (deleteTarget) {
-
                 deleteTarget.remove();
-
                 updateCardNumber();
-
                 update();
-
             }
-
             closeDeleteModal();
         }
 
         function updateCardNumber() {
-
-            document.querySelectorAll("#editorArea .card h4")
-                .forEach((h, i) => {
-
-                    h.textContent = "সৃজনশীল:- " + bnNum(i + 1);
-
-                });
-
-            document.querySelectorAll("#mcqEditor .card h4")
-                .forEach((h, i) => {
-
-                    h.textContent = "বহুনির্বাচনী:- " + bnNum(i + 1);
-
-                });
-
+            document.querySelectorAll("#editorArea .card h4").forEach((h, i) => {
+                h.textContent = "সৃজনশীল:- " + bnNum(i + 1);
+            });
+            document.querySelectorAll("#mcqEditor .card h4").forEach((h, i) => {
+                h.textContent = "বহুনির্বাচনী:- " + bnNum(i + 1);
+            });
+            document.querySelectorAll("#writtenEditor .card h4").forEach((h, i) => {
+                h.textContent = "লিখিত:- " + bnNum(i + 1);
+            });
             qCount = document.querySelectorAll("#editorArea .card").length;
-
             mcqCount = document.querySelectorAll("#mcqEditor .card").length;
+            writtenCount = document.querySelectorAll("#writtenEditor .card").length;
         }
 
-
-        /* INIT */
         update();
-
     </script>
 
     <div id="deleteModal" class="modal">
         <div class="modal-box">
-
             <h3>🗑 প্রশ্ন মুছে ফেলুন</h3>
-
             <p>আপনি কি নিশ্চিতভাবে এই প্রশ্নটি মুছে ফেলতে চান?</p>
-
             <div class="modal-btns">
-                <button class="cancelBtn" onclick="closeDeleteModal()">
-                    cancel
-                </button>
-
-                <button class="confirmBtn" onclick="confirmDelete()">
-                    Delete
-                </button>
+                <button class="cancelBtn" onclick="closeDeleteModal()">cancel</button>
+                <button class="confirmBtn" onclick="confirmDelete()">Delete</button>
             </div>
-
         </div>
     </div>
 
 </body>
-
 </html>
